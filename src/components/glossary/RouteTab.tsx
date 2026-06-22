@@ -373,7 +373,7 @@ const RouteGeoMap: React.FC<{
         const showLabel = lbl && view && view.zoom >= 6;
         return (
           <React.Fragment key={`${awy.id}-${idx}`}>
-            <Polyline positions={pts.map(p => [p.lat, p.lon])}
+            <Polyline positions={pts.map(p => [p.lat, p.lon] as [number, number])}
               pathOptions={{ color, weight: 1, opacity: 0.55 }} />
             {showLabel && (
               <Marker position={[lbl!.lat, lbl!.lon]} interactive={false}
@@ -441,7 +441,7 @@ const RouteGeoMap: React.FC<{
           {BOUNDARY_LINES.map((bl, i) => {
             const pts = bl.points.map(id => lookupPoint(id)).filter((p): p is NavPoint => !!p);
             if (pts.length < 2) return null;
-            return <Polyline key={`bl-${i}`} positions={pts.map(p => [p.lat, p.lon])}
+            return <Polyline key={`bl-${i}`} positions={pts.map(p => [p.lat, p.lon] as [number, number])}
               pathOptions={{ color: '#ef4444', weight: 1.5, opacity: 0.7, dashArray: '6 5' }}>
               <Tooltip className="ais-tip" direction="top">{bl.note}</Tooltip>
             </Polyline>;
@@ -483,7 +483,7 @@ const RouteGeoMap: React.FC<{
 
       {/* Compared routes (under the active route) */}
       {compared.map(c => c.result.legs.filter(l => l.ok).map((leg, i) => (
-        <Polyline key={`${c.id}-${i}`} positions={(leg.path.length >= 2 ? leg.path : [leg.from, leg.to]).map(p => [p.lat, p.lon])}
+        <Polyline key={`${c.id}-${i}`} positions={(leg.path.length >= 2 ? leg.path : [leg.from, leg.to]).map(p => [p.lat, p.lon] as [number, number])}
           pathOptions={{ color: c.color, weight: 3, opacity: 0.85 }} />
       )))}
 
@@ -521,7 +521,7 @@ const RouteGeoMap: React.FC<{
           Solid when it follows the sourced airway network, dashed for a great-circle fallback. */}
       {icaoLink && icaoLink.path.length >= 2 && (
         <Polyline
-          positions={icaoLink.path.map(p => [p.lat, p.lon])}
+          positions={icaoLink.path.map(p => [p.lat, p.lon] as [number, number])}
           pathOptions={{
             color: '#22d3ee', weight: 3.5, opacity: 0.95,
             dashArray: icaoLink.viaNetwork ? undefined : '4 6',
