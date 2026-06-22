@@ -1,11 +1,11 @@
 import React from 'react';
 import { useShift } from '@/context/ShiftContext';
-import { useLocation } from 'wouter';
+import { useNavigate } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 
 export const PerformanceReport: React.FC = () => {
   const { score, maxPossibleScore, tasksCompleted, tasksExpired, shift } = useShift();
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate(); const setLocation = (to: string) => navigate({ to: to as any });
 
   const accuracy = maxPossibleScore > 0 ? (score / maxPossibleScore) * 100 : 0;
   

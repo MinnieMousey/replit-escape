@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLocation } from 'wouter';
+import { useNavigate } from '@tanstack/react-router';
 import { useShift } from '@/context/ShiftContext';
 import { SkyBackground } from '@/components/sky/SkyBackground';
 import { GlossaryFab } from '@/components/glossary/GlossaryFab';
@@ -21,7 +21,7 @@ const TYPE_LABEL: Record<string, string> = {
 };
 
 export default function Handover() {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate(); const setLocation = (to: string) => navigate({ to: to as any });
   const { shift, selectedShiftId, startShift } = useShift();
 
   if (!shift || !selectedShiftId) {

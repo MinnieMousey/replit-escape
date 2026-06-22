@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'wouter';
+import { useNavigate } from '@tanstack/react-router';
 import { SkyBackground } from '@/components/sky/SkyBackground';
 import { Button } from '@/components/ui/button';
 
@@ -17,7 +17,7 @@ function loadAccount(): Account | null {
 }
 
 export default function Login() {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate(); const setLocation = (to: string) => navigate({ to: to as any });
   const [account, setAccount] = useState<Account | null>(null);
   const [mode, setMode] = useState<'signin' | 'signup'>('signup');
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation } from 'wouter';
+import { useNavigate } from '@tanstack/react-router';
 import { useShift } from '@/context/ShiftContext';
 import { SkyBackground } from '@/components/sky/SkyBackground';
 import { GlossaryFab } from '@/components/glossary/GlossaryFab';
@@ -30,7 +30,7 @@ const ACTIVITIES: ActivityDef[] = [
 ];
 
 export default function Practice() {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate(); const setLocation = (to: string) => navigate({ to: to as any });
   const { isPractice, startPractice, practiceTask, exitPractice, activeTaskId } = useShift();
   const [selected, setSelected] = useState<ActivityDef | null>(null);
 

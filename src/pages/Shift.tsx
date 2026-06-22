@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { useLocation } from 'wouter';
+import { useNavigate } from '@tanstack/react-router';
 import { useShift } from '@/context/ShiftContext';
 import { SkyBackground } from '@/components/sky/SkyBackground';
 import { ShiftHud } from '@/components/hud/ShiftHud';
@@ -17,7 +17,7 @@ export default function Shift() {
     generateAndAddTask, addTaskOfType, tasks,
     shift, firedEventIds, fireEvent, startBreak,
   } = useShift();
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate(); const setLocation = (to: string) => navigate({ to: to as any });
 
   const nextTaskTime = useRef(
     Date.now() + MIN_TASK_INTERVAL + Math.random() * (MAX_TASK_INTERVAL - MIN_TASK_INTERVAL)

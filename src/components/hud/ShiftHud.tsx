@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { useShift } from '@/context/ShiftContext';
-import { useLocation } from 'wouter';
+import { useNavigate } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { GlossaryOverlay } from '@/components/glossary/GlossaryOverlay';
 import { FileStoreBody } from '@/components/hud/FileStoreOverlay';
@@ -26,7 +26,7 @@ export const ShiftHud: React.FC = () => {
     isPaused, clockSpeed, pauseShift, resumeShift, setClockSpeed, endShift,
     fileStore,
   } = useShift();
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate(); const setLocation = (to: string) => navigate({ to: to as any });
   const [glossaryOpen, setGlossaryOpen] = useState(false);
 
   const [windows, setWindows] = useState<Record<WinKind, WinState>>({
