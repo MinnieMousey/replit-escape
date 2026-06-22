@@ -9,38 +9,155 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ShiftRouteImport } from './routes/shift'
+import { Route as SelectRouteImport } from './routes/select'
+import { Route as ReportRouteImport } from './routes/report'
+import { Route as PracticeRouteImport } from './routes/practice'
+import { Route as HandoverRouteImport } from './routes/handover'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiHealthzRouteImport } from './routes/api/healthz'
 
+const ShiftRoute = ShiftRouteImport.update({
+  id: '/shift',
+  path: '/shift',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SelectRoute = SelectRouteImport.update({
+  id: '/select',
+  path: '/select',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportRoute = ReportRouteImport.update({
+  id: '/report',
+  path: '/report',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PracticeRoute = PracticeRouteImport.update({
+  id: '/practice',
+  path: '/practice',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HandoverRoute = HandoverRouteImport.update({
+  id: '/handover',
+  path: '/handover',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiHealthzRoute = ApiHealthzRouteImport.update({
+  id: '/api/healthz',
+  path: '/api/healthz',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/handover': typeof HandoverRoute
+  '/practice': typeof PracticeRoute
+  '/report': typeof ReportRoute
+  '/select': typeof SelectRoute
+  '/shift': typeof ShiftRoute
+  '/api/healthz': typeof ApiHealthzRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/handover': typeof HandoverRoute
+  '/practice': typeof PracticeRoute
+  '/report': typeof ReportRoute
+  '/select': typeof SelectRoute
+  '/shift': typeof ShiftRoute
+  '/api/healthz': typeof ApiHealthzRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/handover': typeof HandoverRoute
+  '/practice': typeof PracticeRoute
+  '/report': typeof ReportRoute
+  '/select': typeof SelectRoute
+  '/shift': typeof ShiftRoute
+  '/api/healthz': typeof ApiHealthzRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/handover'
+    | '/practice'
+    | '/report'
+    | '/select'
+    | '/shift'
+    | '/api/healthz'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/handover'
+    | '/practice'
+    | '/report'
+    | '/select'
+    | '/shift'
+    | '/api/healthz'
+  id:
+    | '__root__'
+    | '/'
+    | '/handover'
+    | '/practice'
+    | '/report'
+    | '/select'
+    | '/shift'
+    | '/api/healthz'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  HandoverRoute: typeof HandoverRoute
+  PracticeRoute: typeof PracticeRoute
+  ReportRoute: typeof ReportRoute
+  SelectRoute: typeof SelectRoute
+  ShiftRoute: typeof ShiftRoute
+  ApiHealthzRoute: typeof ApiHealthzRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/shift': {
+      id: '/shift'
+      path: '/shift'
+      fullPath: '/shift'
+      preLoaderRoute: typeof ShiftRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/select': {
+      id: '/select'
+      path: '/select'
+      fullPath: '/select'
+      preLoaderRoute: typeof SelectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/report': {
+      id: '/report'
+      path: '/report'
+      fullPath: '/report'
+      preLoaderRoute: typeof ReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/practice': {
+      id: '/practice'
+      path: '/practice'
+      fullPath: '/practice'
+      preLoaderRoute: typeof PracticeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/handover': {
+      id: '/handover'
+      path: '/handover'
+      fullPath: '/handover'
+      preLoaderRoute: typeof HandoverRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +165,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/healthz': {
+      id: '/api/healthz'
+      path: '/api/healthz'
+      fullPath: '/api/healthz'
+      preLoaderRoute: typeof ApiHealthzRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  HandoverRoute: HandoverRoute,
+  PracticeRoute: PracticeRoute,
+  ReportRoute: ReportRoute,
+  SelectRoute: SelectRoute,
+  ShiftRoute: ShiftRoute,
+  ApiHealthzRoute: ApiHealthzRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
