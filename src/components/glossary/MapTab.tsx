@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import adamsAreaChart from '@assets/AD_2-20_caribbean-1.png';
+const adamsAreaChart = '/assets/AD_2-20_caribbean-1.png';
 import { ChartPopout, PopoutImage } from './ChartPopout';
 
 // ── Types & Data ──────────────────────────────────────────────────────────────

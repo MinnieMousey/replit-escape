@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useShift } from '@/context/ShiftContext';
-import cadLogo from '@assets/cad_logo_barbados.png';
+const cadLogo = '/assets/cad_logo_barbados.png';
 
 interface CoverPageForm {
   productType: string;

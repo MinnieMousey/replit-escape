@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import doc7910Map from '@assets/IMG_0076_1780673279978.png';
-import firChart from '@assets/caribbean_central_america_firs.jpg';
+const doc7910Map = '/assets/IMG_0076_1780673279978.png';
+const firChart = '/assets/caribbean_central_america_firs.jpg';
 import { FIRS, BOUNDARY_POINTS, BOUNDARY_LINES } from './navdb';
 import { ChartPopout, PopoutImage } from './ChartPopout';
 
