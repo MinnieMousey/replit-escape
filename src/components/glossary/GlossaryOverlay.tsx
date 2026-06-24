@@ -1449,6 +1449,7 @@ export const GlossaryOverlay: React.FC<GlossaryOverlayProps> = ({ isOpen, onClos
 
           {/* ── Route Planner & Mapper ── */}
           {tab === 'route' && <RouteTab />}
+          {tab === 'caribbean' && <CaribbeanRefTab />}
 
           {/* ── Aircraft & Airlines ── */}
           {tab === 'aircraft' && <AircraftTab />}
