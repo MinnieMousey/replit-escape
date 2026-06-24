@@ -100,7 +100,7 @@ export function fixesInBbox(west: number, south: number, east: number, north: nu
 }
 
 export function nearestFix(lon: number, lat: number, radiusDeg = 1, kinds?: Fix['kind'][]): Fix | null {
-  const candidates = tree.search({
+  const candidates: IdxEntry[] = tree.search({
     minX: lon - radiusDeg, minY: lat - radiusDeg, maxX: lon + radiusDeg, maxY: lat + radiusDeg,
   });
   let best: Fix | null = null, bd = Infinity;
