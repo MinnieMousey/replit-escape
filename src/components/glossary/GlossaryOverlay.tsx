@@ -4,10 +4,11 @@ import { LocIndTab } from './LocIndTab';
 import { AipTab } from './AipTab';
 import { AircraftTab, ACFT_TYPES, AIRLINES, WTC_CATS } from './AircraftTab';
 import { RouteTab } from './RouteTab';
+import { CaribbeanRefTab } from './CaribbeanRefTab';
 import { NAVAIDS, FIXES, AIRWAYS } from './navdb';
 
 interface GlossaryOverlayProps { isOpen: boolean; onClose: () => void; }
-type Tab = 'abbrevs' | 'qcodes' | 'fplequip' | 'metar' | 'ats' | 'handling' | 'docs' | 'calllog' | 'aerodromes' | 'map' | 'locind' | 'aip' | 'aircraft' | 'route';
+type Tab = 'abbrevs' | 'qcodes' | 'fplequip' | 'metar' | 'ats' | 'handling' | 'docs' | 'calllog' | 'aerodromes' | 'map' | 'locind' | 'aip' | 'aircraft' | 'route' | 'caribbean';
 interface CallLogEntry { id: string; text: string; timestamp: number; }
 
 // ── Accordion helper ───────────────────────────────────────────────────────────
@@ -665,6 +666,7 @@ export const GlossaryOverlay: React.FC<GlossaryOverlayProps> = ({ isOpen, onClos
           <TabBtn id="route"      label="Route Planner" />
           <TabBtn id="aircraft"   label="Aircraft & Airlines" />
           <TabBtn id="map"        label="Caribbean Map" />
+          <TabBtn id="caribbean"  label="Caribbean Ref" />
           <TabBtn id="locind"     label="Loc. Indicators / AFTN" />
         </div>
         )}
@@ -1447,6 +1449,7 @@ export const GlossaryOverlay: React.FC<GlossaryOverlayProps> = ({ isOpen, onClos
 
           {/* ── Route Planner & Mapper ── */}
           {tab === 'route' && <RouteTab />}
+          {tab === 'caribbean' && <CaribbeanRefTab />}
 
           {/* ── Aircraft & Airlines ── */}
           {tab === 'aircraft' && <AircraftTab />}
