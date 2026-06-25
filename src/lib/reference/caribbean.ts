@@ -67,4 +67,15 @@ export const CARIBBEAN_AIRPORTS: AirportRef[] = [
   { icao: 'MKJS', iata: 'MBJ', name: 'Jamaica — Sangster Int\'l (Montego Bay)' },
   { icao: 'TGPZ', iata: 'CRU', name: 'Grenada — Lauriston (Carriacou)' },
   { icao: 'SOCA', iata: 'CAY', name: 'French Guiana — Félix Éboué' },
+  // Wider Central America / North America destinations frequently filed from TBPB.
+  { icao: 'MZBZ', iata: 'BZE', name: 'Belize — Philip S.W. Goldson Int\'l' },
+  { icao: 'TNCM', iata: 'SXM', name: 'Sint Maarten — Princess Juliana Int\'l' },
+  { icao: 'TNCA', iata: 'AUA', name: 'Aruba — Queen Beatrix Int\'l' },
+  { icao: 'TNCC', iata: 'CUR', name: 'Curaçao — Hato Int\'l' },
+  { icao: 'MDSD', iata: 'SDQ', name: 'Dominican Rep. — Las Américas Int\'l' },
+  { icao: 'MUHA', iata: 'HAV', name: 'Cuba — José Martí Int\'l' },
+  { icao: 'KMIA', iata: 'MIA', name: 'Miami Int\'l' },
+  { icao: 'KJFK', iata: 'JFK', name: 'New York — John F. Kennedy Int\'l' },
+  { icao: 'CYYZ', iata: 'YYZ', name: 'Toronto — Pearson Int\'l' },
+  { icao: 'EGLL', iata: 'LHR', name: 'London Heathrow' },
 ];
