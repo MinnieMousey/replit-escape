@@ -205,6 +205,8 @@ interface Layers {
   airways: boolean;
   firs: boolean;
   vorIds: boolean;
+  vorRose: boolean;
+  apNames: boolean;
 }
 
 interface MapProps {
