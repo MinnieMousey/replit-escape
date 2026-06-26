@@ -108,7 +108,7 @@ const airportsGeo = () => ({
   features: AIRPORTS.map(a => ({
     type: 'Feature' as const,
     geometry: { type: 'Point' as const, coordinates: [a.lon, a.lat] },
-    properties: { ident: a.icao, kind: 'airport', label: a.icao, name: a.name },
+    properties: { ident: a.icao, kind: 'airport', label: a.icao, name: a.name, shortName: shortAirportName(a.name) },
   })),
 });
 
