@@ -496,6 +496,7 @@ const RouteMap: React.FC<MapProps> = ({ plan, onPickFix, layers, tier, theme }) 
     };
     set('airport-symbol', layers.airports);
     set('airport-label',  layers.airports);
+    set('airport-name',   layers.airports && layers.apNames);
     set('navaid-symbol',  layers.navaids);
     set('navaid-label',   layers.navaids && layers.vorIds);
     set('waypoint-symbol', layers.waypoints && tier !== 'IFR_HI');
@@ -503,6 +504,9 @@ const RouteMap: React.FC<MapProps> = ({ plan, onPickFix, layers, tier, theme }) 
     set('fir-fill',       layers.firs);
     set('fir-stroke',     layers.firs);
     set('fir-label',      layers.firs);
+    set('vor-rose-ring',  layers.vorRose && layers.navaids);
+    set('vor-rose-tick',  layers.vorRose && layers.navaids);
+    set('vor-rose-label', layers.vorRose && layers.navaids);
 
     // Tier-driven airway filtering.
     if (map.getLayer('awy-line')) {
