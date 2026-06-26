@@ -357,6 +357,62 @@ const RouteMap: React.FC<MapProps> = ({ plan, onPickFix, layers, tier, theme }) 
           'text-halo-width': 1.4,
         },
       });
+      // Aerodrome full names — beneath the ICAO label, smaller + lower opacity.
+      map.addLayer({
+        id: 'airport-name', type: 'symbol', source: 'airports',
+        minzoom: 6,
+        layout: {
+          'text-field': ['get', 'shortName'],
+          'text-font': ['Open Sans Regular'],
+          'text-size': ['interpolate', ['linear'], ['zoom'], 6, 8, 11, 11],
+          'text-offset': [0.8, 1.2],
+          'text-anchor': 'left',
+          'text-optional': true,
+        },
+        paint: {
+          'text-color': pal.airport,
+          'text-halo-color': pal.labelHalo,
+          'text-halo-width': 1.2,
+          'text-opacity': 0.75,
+        },
+      });
+
+      // VOR compass rose — ring + ticks + degree labels. Visible from z≥7.
+      map.addLayer({
+        id: 'vor-rose-ring', type: 'line', source: 'vor-rose-ring',
+        minzoom: 7,
+        paint: {
+          'line-color': pal.vor,
+          'line-width': ['interpolate', ['linear'], ['zoom'], 7, 0.6, 11, 1.1],
+          'line-opacity': 0.55,
+        },
+      });
+      map.addLayer({
+        id: 'vor-rose-tick', type: 'line', source: 'vor-rose-tick',
+        minzoom: 7,
+        paint: {
+          'line-color': pal.vor,
+          'line-width': ['case', ['get', 'long'], 1.2, 0.6],
+          'line-opacity': 0.75,
+        },
+      });
+      map.addLayer({
+        id: 'vor-rose-label', type: 'symbol', source: 'vor-rose-label',
+        minzoom: 8,
+        layout: {
+          'text-field': ['get', 'label'],
+          'text-font': ['Open Sans Regular'],
+          'text-size': ['interpolate', ['linear'], ['zoom'], 8, 8, 11, 10],
+          'text-allow-overlap': false,
+          'text-rotation-alignment': 'viewport',
+        },
+        paint: {
+          'text-color': pal.vor,
+          'text-halo-color': pal.labelHalo,
+          'text-halo-width': 1.2,
+          'text-opacity': 0.8,
+        },
+      });
       map.addLayer({
         id: 'fir-label', type: 'symbol', source: 'fir-labels',
         minzoom: 3,
