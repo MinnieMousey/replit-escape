@@ -246,6 +246,9 @@ const RouteMap: React.FC<MapProps> = ({ plan, onPickFix, layers, tier, theme }) 
       map.addSource('waypoints', { type: 'geojson', data: waypointsGeo() });
       map.addSource('route', { type: 'geojson', data: routeGeo([]) });
       map.addSource('route-points', { type: 'geojson', data: routePointsGeo([]) });
+      map.addSource('vor-rose-ring', { type: 'geojson', data: vorRoseRings() });
+      map.addSource('vor-rose-tick', { type: 'geojson', data: vorRoseTicks() });
+      map.addSource('vor-rose-label', { type: 'geojson', data: vorRoseLabels() });
 
       // FIR fill + stroke (under everything).
       map.addLayer({
