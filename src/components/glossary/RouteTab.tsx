@@ -512,7 +512,7 @@ export const RouteTab: React.FC = () => {
   const [routeStr, setRouteStr] = useState('');
   const [search, setSearch] = useState('');
   const [layers, setLayers] = useState<Layers>({
-    airports: true, navaids: true, waypoints: true, airways: true, firs: true, vorIds: true,
+    airports: true, navaids: true, waypoints: true, airways: true, firs: true, vorIds: true, vorRose: false, apNames: true,
   });
   const [tier, setTier] = useState<Tier>(() =>
     (typeof localStorage !== 'undefined' && (localStorage.getItem(TIER_KEY) as Tier)) || 'IFR_LO');
