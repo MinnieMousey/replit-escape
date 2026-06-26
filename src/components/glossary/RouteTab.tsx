@@ -10,7 +10,17 @@ import { greatCircleLine } from '@/lib/nav/greatCircle';
 import {
   FIR_BOUNDARIES, firDisplayName, firTier, detectFirTransitions,
 } from '@/lib/nav/firs';
+import { vorRoseRings, vorRoseTicks, vorRoseLabels } from '@/lib/nav/radials';
 import type { Fix, PlannedRoute, RouteElement } from '@/lib/nav/types';
+
+// Trim verbose airport names for the on-map label ("Country — Foo Int'l" → "Foo").
+const shortAirportName = (full: string | undefined): string => {
+  if (!full) return '';
+  const dash = full.indexOf('—');
+  let s = dash >= 0 ? full.slice(dash + 1) : full;
+  s = s.replace(/\bInternational\b/gi, '').replace(/\bInt['’]?l\b/gi, '').replace(/\s+/g, ' ').trim();
+  return s.length > 28 ? s.slice(0, 27) + '…' : s;
+};
 
 // ── Route Planner & Mapper (SkyVector-style, MapLibre engine) ───────────────
 // Worldwide-scale route editor backed by the nav engine in src/lib/nav/*.
@@ -98,7 +108,7 @@ const airportsGeo = () => ({
   features: AIRPORTS.map(a => ({
     type: 'Feature' as const,
     geometry: { type: 'Point' as const, coordinates: [a.lon, a.lat] },
-    properties: { ident: a.icao, kind: 'airport', label: a.icao, name: a.name },
+    properties: { ident: a.icao, kind: 'airport', label: a.icao, name: a.name, shortName: shortAirportName(a.name) },
   })),
 });
 
@@ -195,6 +205,8 @@ interface Layers {
   airways: boolean;
   firs: boolean;
   vorIds: boolean;
+  vorRose: boolean;
+  apNames: boolean;
 }
 
 interface MapProps {
@@ -234,6 +246,9 @@ const RouteMap: React.FC<MapProps> = ({ plan, onPickFix, layers, tier, theme }) 
       map.addSource('waypoints', { type: 'geojson', data: waypointsGeo() });
       map.addSource('route', { type: 'geojson', data: routeGeo([]) });
       map.addSource('route-points', { type: 'geojson', data: routePointsGeo([]) });
+      map.addSource('vor-rose-ring', { type: 'geojson', data: vorRoseRings() });
+      map.addSource('vor-rose-tick', { type: 'geojson', data: vorRoseTicks() });
+      map.addSource('vor-rose-label', { type: 'geojson', data: vorRoseLabels() });
 
       // FIR fill + stroke (under everything).
       map.addLayer({
@@ -342,6 +357,62 @@ const RouteMap: React.FC<MapProps> = ({ plan, onPickFix, layers, tier, theme }) 
           'text-halo-width': 1.4,
         },
       });
+      // Aerodrome full names — beneath the ICAO label, smaller + lower opacity.
+      map.addLayer({
+        id: 'airport-name', type: 'symbol', source: 'airports',
+        minzoom: 6,
+        layout: {
+          'text-field': ['get', 'shortName'],
+          'text-font': ['Open Sans Regular'],
+          'text-size': ['interpolate', ['linear'], ['zoom'], 6, 8, 11, 11],
+          'text-offset': [0.8, 1.2],
+          'text-anchor': 'left',
+          'text-optional': true,
+        },
+        paint: {
+          'text-color': pal.airport,
+          'text-halo-color': pal.labelHalo,
+          'text-halo-width': 1.2,
+          'text-opacity': 0.75,
+        },
+      });
+
+      // VOR compass rose — ring + ticks + degree labels. Visible from z≥7.
+      map.addLayer({
+        id: 'vor-rose-ring', type: 'line', source: 'vor-rose-ring',
+        minzoom: 7,
+        paint: {
+          'line-color': pal.vor,
+          'line-width': ['interpolate', ['linear'], ['zoom'], 7, 0.6, 11, 1.1],
+          'line-opacity': 0.55,
+        },
+      });
+      map.addLayer({
+        id: 'vor-rose-tick', type: 'line', source: 'vor-rose-tick',
+        minzoom: 7,
+        paint: {
+          'line-color': pal.vor,
+          'line-width': ['case', ['get', 'long'], 1.2, 0.6],
+          'line-opacity': 0.75,
+        },
+      });
+      map.addLayer({
+        id: 'vor-rose-label', type: 'symbol', source: 'vor-rose-label',
+        minzoom: 8,
+        layout: {
+          'text-field': ['get', 'label'],
+          'text-font': ['Open Sans Regular'],
+          'text-size': ['interpolate', ['linear'], ['zoom'], 8, 8, 11, 10],
+          'text-allow-overlap': false,
+          'text-rotation-alignment': 'viewport',
+        },
+        paint: {
+          'text-color': pal.vor,
+          'text-halo-color': pal.labelHalo,
+          'text-halo-width': 1.2,
+          'text-opacity': 0.8,
+        },
+      });
       map.addLayer({
         id: 'fir-label', type: 'symbol', source: 'fir-labels',
         minzoom: 3,
@@ -425,6 +496,7 @@ const RouteMap: React.FC<MapProps> = ({ plan, onPickFix, layers, tier, theme }) 
     };
     set('airport-symbol', layers.airports);
     set('airport-label',  layers.airports);
+    set('airport-name',   layers.airports && layers.apNames);
     set('navaid-symbol',  layers.navaids);
     set('navaid-label',   layers.navaids && layers.vorIds);
     set('waypoint-symbol', layers.waypoints && tier !== 'IFR_HI');
@@ -432,6 +504,9 @@ const RouteMap: React.FC<MapProps> = ({ plan, onPickFix, layers, tier, theme }) 
     set('fir-fill',       layers.firs);
     set('fir-stroke',     layers.firs);
     set('fir-label',      layers.firs);
+    set('vor-rose-ring',  layers.vorRose && layers.navaids);
+    set('vor-rose-tick',  layers.vorRose && layers.navaids);
+    set('vor-rose-label', layers.vorRose && layers.navaids);
 
     // Tier-driven airway filtering.
     if (map.getLayer('awy-line')) {
@@ -500,7 +575,7 @@ export const RouteTab: React.FC = () => {
   const [routeStr, setRouteStr] = useState('');
   const [search, setSearch] = useState('');
   const [layers, setLayers] = useState<Layers>({
-    airports: true, navaids: true, waypoints: true, airways: true, firs: true, vorIds: true,
+    airports: true, navaids: true, waypoints: true, airways: true, firs: true, vorIds: true, vorRose: false, apNames: true,
   });
   const [tier, setTier] = useState<Tier>(() =>
     (typeof localStorage !== 'undefined' && (localStorage.getItem(TIER_KEY) as Tier)) || 'IFR_LO');
@@ -619,8 +694,10 @@ export const RouteTab: React.FC = () => {
 
   const layerBtns: { key: keyof Layers; label: string }[] = [
     { key: 'airports', label: 'Airports' },
+    { key: 'apNames', label: 'AD Names' },
     { key: 'navaids', label: 'Navaids' },
     { key: 'vorIds', label: 'VOR IDs' },
+    { key: 'vorRose', label: 'VOR Rose' },
     { key: 'waypoints', label: 'Waypoints' },
     { key: 'airways', label: 'Airways' },
     { key: 'firs', label: 'FIRs' },
