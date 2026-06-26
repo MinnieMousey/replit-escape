@@ -10,7 +10,17 @@ import { greatCircleLine } from '@/lib/nav/greatCircle';
 import {
   FIR_BOUNDARIES, firDisplayName, firTier, detectFirTransitions,
 } from '@/lib/nav/firs';
+import { vorRoseRings, vorRoseTicks, vorRoseLabels } from '@/lib/nav/radials';
 import type { Fix, PlannedRoute, RouteElement } from '@/lib/nav/types';
+
+// Trim verbose airport names for the on-map label ("Country — Foo Int'l" → "Foo").
+const shortAirportName = (full: string | undefined): string => {
+  if (!full) return '';
+  const dash = full.indexOf('—');
+  let s = dash >= 0 ? full.slice(dash + 1) : full;
+  s = s.replace(/\bInternational\b/gi, '').replace(/\bInt['’]?l\b/gi, '').replace(/\s+/g, ' ').trim();
+  return s.length > 28 ? s.slice(0, 27) + '…' : s;
+};
 
 // ── Route Planner & Mapper (SkyVector-style, MapLibre engine) ───────────────
 // Worldwide-scale route editor backed by the nav engine in src/lib/nav/*.
