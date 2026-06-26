@@ -694,8 +694,10 @@ export const RouteTab: React.FC = () => {
 
   const layerBtns: { key: keyof Layers; label: string }[] = [
     { key: 'airports', label: 'Airports' },
+    { key: 'apNames', label: 'AD Names' },
     { key: 'navaids', label: 'Navaids' },
     { key: 'vorIds', label: 'VOR IDs' },
+    { key: 'vorRose', label: 'VOR Rose' },
     { key: 'waypoints', label: 'Waypoints' },
     { key: 'airways', label: 'Airways' },
     { key: 'firs', label: 'FIRs' },
