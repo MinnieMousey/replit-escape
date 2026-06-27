@@ -561,6 +561,7 @@ const RouteMap: React.FC<MapProps> = ({ plan, onPickFix, layers, tier, theme }) 
         tier === 'IFR_LO' ? ['match', ['get', 'type'], ['VICTOR', 'LOW', 'RNAV'], true, false] :
         ['match', ['get', 'type'], ['JET', 'UPPER', 'RNAV', 'OCEANIC'], true, false];
       map.setFilter('awy-line', filter);
+      if (map.getLayer('awy-label')) map.setFilter('awy-label', filter);
     }
     // Tier-driven navaid filtering: IFR-Hi hides NDBs.
     if (map.getLayer('navaid-symbol')) {
