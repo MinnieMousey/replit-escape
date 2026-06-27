@@ -290,6 +290,29 @@ const RouteMap: React.FC<MapProps> = ({ plan, onPickFix, layers, tier, theme }) 
         },
       });
 
+      // Boxed inline airway labels along each segment (e.g. A632, R750).
+      map.addLayer({
+        id: 'awy-label', type: 'symbol', source: 'airways',
+        minzoom: 5,
+        layout: {
+          'symbol-placement': 'line',
+          'text-field': ['get', 'id'],
+          'text-font': ['Open Sans Regular'],
+          'text-size': ['interpolate', ['linear'], ['zoom'], 5, 9, 10, 12],
+          'text-letter-spacing': 0.05,
+          'text-padding': 4,
+          'text-rotation-alignment': 'viewport',
+          'text-pitch-alignment': 'viewport',
+          'symbol-spacing': 220,
+        },
+        paint: {
+          'text-color': pal.firLabel,
+          'text-halo-color': pal.labelHalo,
+          'text-halo-width': 3.0,
+          'text-halo-blur': 0.2,
+        },
+      });
+
       map.addLayer({
         id: 'navaid-symbol', type: 'circle', source: 'navaids',
         minzoom: 5,
