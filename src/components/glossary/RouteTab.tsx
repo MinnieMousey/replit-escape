@@ -11,7 +11,6 @@ import {
   FIR_BOUNDARIES, firDisplayName, firTier, detectFirTransitions,
 } from '@/lib/nav/firs';
 import { vorRoseRings, vorRoseTicks, vorRoseLabels } from '@/lib/nav/radials';
-import { firEdgeLabelsGeo } from '@/lib/nav/firEdgePoints';
 import type { Fix, PlannedRoute, RouteElement } from '@/lib/nav/types';
 
 // Trim verbose airport names for the on-map label ("Country — Foo Int'l" → "Foo").
@@ -52,7 +51,7 @@ const PALETTE = {
     awyOceanic: '#06b6d4',
     awyLow: '#64748b',
     route: '#facc15',
-    firStroke: '#1e6fb8',
+    firStroke: '#7dd3fc',
     firFill: '#0ea5e9',
     firLabel: '#bae6fd',
     labelHalo: '#0b1220',
@@ -70,7 +69,7 @@ const PALETTE = {
     awyOceanic: '#0e7490',
     awyLow: '#475569',
     route: '#b91c1c',
-    firStroke: '#1e6fb8',
+    firStroke: '#1e3a8a',
     firFill: '#3b82f6',
     firLabel: '#0f172a',
     labelHalo: '#ffffff',
@@ -241,7 +240,6 @@ const RouteMap: React.FC<MapProps> = ({ plan, onPickFix, layers, tier, theme }) 
       ready.current = true;
       map.addSource('firs', { type: 'geojson', data: firFillGeo() });
       map.addSource('fir-labels', { type: 'geojson', data: firLabelGeo() });
-      map.addSource('fir-edges', { type: 'geojson', data: firEdgeLabelsGeo() });
       map.addSource('airways', { type: 'geojson', data: airwaysGeo() });
       map.addSource('airports', { type: 'geojson', data: airportsGeo() });
       map.addSource('navaids', { type: 'geojson', data: navaidsGeo() });
@@ -252,13 +250,13 @@ const RouteMap: React.FC<MapProps> = ({ plan, onPickFix, layers, tier, theme }) 
       map.addSource('vor-rose-tick', { type: 'geojson', data: vorRoseTicks() });
       map.addSource('vor-rose-label', { type: 'geojson', data: vorRoseLabels() });
 
-      // FIR fill + solid SkyVector-blue stroke (under everything).
+      // FIR fill + stroke (under everything).
       map.addLayer({
         id: 'fir-fill', type: 'fill', source: 'firs',
         minzoom: 2,
         paint: {
           'fill-color': ['match', ['get', 'tier'], 'OCEANIC', pal.awyOceanic, pal.firFill],
-          'fill-opacity': theme === 'dark' ? 0.05 : 0.03,
+          'fill-opacity': theme === 'dark' ? 0.06 : 0.04,
         },
       });
       map.addLayer({
@@ -266,8 +264,9 @@ const RouteMap: React.FC<MapProps> = ({ plan, onPickFix, layers, tier, theme }) 
         minzoom: 2,
         paint: {
           'line-color': pal.firStroke,
-          'line-width': ['interpolate', ['linear'], ['zoom'], 2, 0.8, 6, 1.6, 10, 2.4],
-          'line-opacity': 0.9,
+          'line-width': ['interpolate', ['linear'], ['zoom'], 2, 0.6, 6, 1.4, 10, 2.2],
+          'line-opacity': 0.75,
+          'line-dasharray': [2, 2],
         },
       });
 
@@ -287,29 +286,6 @@ const RouteMap: React.FC<MapProps> = ({ plan, onPickFix, layers, tier, theme }) 
           ],
           'line-width': ['interpolate', ['linear'], ['zoom'], 3, 0.4, 8, 1.6],
           'line-opacity': 0.6,
-        },
-      });
-
-      // Boxed inline airway labels along each segment (e.g. A632, R750).
-      map.addLayer({
-        id: 'awy-label', type: 'symbol', source: 'airways',
-        minzoom: 5,
-        layout: {
-          'symbol-placement': 'line',
-          'text-field': ['get', 'id'],
-          'text-font': ['Open Sans Regular'],
-          'text-size': ['interpolate', ['linear'], ['zoom'], 5, 9, 10, 12],
-          'text-letter-spacing': 0.05,
-          'text-padding': 4,
-          'text-rotation-alignment': 'viewport',
-          'text-pitch-alignment': 'viewport',
-          'symbol-spacing': 220,
-        },
-        paint: {
-          'text-color': pal.firLabel,
-          'text-halo-color': pal.labelHalo,
-          'text-halo-width': 3.0,
-          'text-halo-blur': 0.2,
         },
       });
 
@@ -455,26 +431,6 @@ const RouteMap: React.FC<MapProps> = ({ plan, onPickFix, layers, tier, theme }) 
         },
       });
 
-      // FIR junction labels — show both adjacent FIR idents where boundaries meet.
-      map.addLayer({
-        id: 'fir-edge-label', type: 'symbol', source: 'fir-edges',
-        minzoom: 4,
-        layout: {
-          'text-field': ['get', 'idents'],
-          'text-font': ['Open Sans Regular'],
-          'text-size': ['interpolate', ['linear'], ['zoom'], 4, 9, 8, 12],
-          'text-letter-spacing': 0.08,
-          'text-line-height': 1.1,
-          'text-anchor': 'center',
-          'text-allow-overlap': false,
-        },
-        paint: {
-          'text-color': pal.firStroke,
-          'text-halo-color': pal.labelHalo,
-          'text-halo-width': 2.2,
-        },
-      });
-
       map.addLayer({
         id: 'route-line', type: 'line', source: 'route',
         paint: {
@@ -545,11 +501,9 @@ const RouteMap: React.FC<MapProps> = ({ plan, onPickFix, layers, tier, theme }) 
     set('navaid-label',   layers.navaids && layers.vorIds);
     set('waypoint-symbol', layers.waypoints && tier !== 'IFR_HI');
     set('awy-line',       layers.airways);
-    set('awy-label',      layers.airways);
     set('fir-fill',       layers.firs);
     set('fir-stroke',     layers.firs);
     set('fir-label',      layers.firs);
-    set('fir-edge-label', layers.firs);
     set('vor-rose-ring',  layers.vorRose && layers.navaids);
     set('vor-rose-tick',  layers.vorRose && layers.navaids);
     set('vor-rose-label', layers.vorRose && layers.navaids);
@@ -561,7 +515,6 @@ const RouteMap: React.FC<MapProps> = ({ plan, onPickFix, layers, tier, theme }) 
         tier === 'IFR_LO' ? ['match', ['get', 'type'], ['VICTOR', 'LOW', 'RNAV'], true, false] :
         ['match', ['get', 'type'], ['JET', 'UPPER', 'RNAV', 'OCEANIC'], true, false];
       map.setFilter('awy-line', filter);
-      if (map.getLayer('awy-label')) map.setFilter('awy-label', filter);
     }
     // Tier-driven navaid filtering: IFR-Hi hides NDBs.
     if (map.getLayer('navaid-symbol')) {
