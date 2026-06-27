@@ -241,6 +241,7 @@ const RouteMap: React.FC<MapProps> = ({ plan, onPickFix, layers, tier, theme }) 
       ready.current = true;
       map.addSource('firs', { type: 'geojson', data: firFillGeo() });
       map.addSource('fir-labels', { type: 'geojson', data: firLabelGeo() });
+      map.addSource('fir-edges', { type: 'geojson', data: firEdgeLabelsGeo() });
       map.addSource('airways', { type: 'geojson', data: airwaysGeo() });
       map.addSource('airports', { type: 'geojson', data: airportsGeo() });
       map.addSource('navaids', { type: 'geojson', data: navaidsGeo() });
@@ -251,13 +252,13 @@ const RouteMap: React.FC<MapProps> = ({ plan, onPickFix, layers, tier, theme }) 
       map.addSource('vor-rose-tick', { type: 'geojson', data: vorRoseTicks() });
       map.addSource('vor-rose-label', { type: 'geojson', data: vorRoseLabels() });
 
-      // FIR fill + stroke (under everything).
+      // FIR fill + solid SkyVector-blue stroke (under everything).
       map.addLayer({
         id: 'fir-fill', type: 'fill', source: 'firs',
         minzoom: 2,
         paint: {
           'fill-color': ['match', ['get', 'tier'], 'OCEANIC', pal.awyOceanic, pal.firFill],
-          'fill-opacity': theme === 'dark' ? 0.06 : 0.04,
+          'fill-opacity': theme === 'dark' ? 0.05 : 0.03,
         },
       });
       map.addLayer({
@@ -265,9 +266,8 @@ const RouteMap: React.FC<MapProps> = ({ plan, onPickFix, layers, tier, theme }) 
         minzoom: 2,
         paint: {
           'line-color': pal.firStroke,
-          'line-width': ['interpolate', ['linear'], ['zoom'], 2, 0.6, 6, 1.4, 10, 2.2],
-          'line-opacity': 0.75,
-          'line-dasharray': [2, 2],
+          'line-width': ['interpolate', ['linear'], ['zoom'], 2, 0.8, 6, 1.6, 10, 2.4],
+          'line-opacity': 0.9,
         },
       });
 
