@@ -545,9 +545,11 @@ const RouteMap: React.FC<MapProps> = ({ plan, onPickFix, layers, tier, theme }) 
     set('navaid-label',   layers.navaids && layers.vorIds);
     set('waypoint-symbol', layers.waypoints && tier !== 'IFR_HI');
     set('awy-line',       layers.airways);
+    set('awy-label',      layers.airways);
     set('fir-fill',       layers.firs);
     set('fir-stroke',     layers.firs);
     set('fir-label',      layers.firs);
+    set('fir-edge-label', layers.firs);
     set('vor-rose-ring',  layers.vorRose && layers.navaids);
     set('vor-rose-tick',  layers.vorRose && layers.navaids);
     set('vor-rose-label', layers.vorRose && layers.navaids);
