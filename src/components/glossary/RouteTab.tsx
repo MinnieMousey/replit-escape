@@ -11,6 +11,7 @@ import {
   FIR_BOUNDARIES, firDisplayName, firTier, detectFirTransitions,
 } from '@/lib/nav/firs';
 import { vorRoseRings, vorRoseTicks, vorRoseLabels } from '@/lib/nav/radials';
+import { firEdgeLabelsGeo } from '@/lib/nav/firEdgePoints';
 import type { Fix, PlannedRoute, RouteElement } from '@/lib/nav/types';
 
 // Trim verbose airport names for the on-map label ("Country — Foo Int'l" → "Foo").
