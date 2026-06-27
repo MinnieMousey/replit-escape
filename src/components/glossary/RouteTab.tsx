@@ -455,6 +455,26 @@ const RouteMap: React.FC<MapProps> = ({ plan, onPickFix, layers, tier, theme }) 
         },
       });
 
+      // FIR junction labels — show both adjacent FIR idents where boundaries meet.
+      map.addLayer({
+        id: 'fir-edge-label', type: 'symbol', source: 'fir-edges',
+        minzoom: 4,
+        layout: {
+          'text-field': ['get', 'idents'],
+          'text-font': ['Open Sans Regular'],
+          'text-size': ['interpolate', ['linear'], ['zoom'], 4, 9, 8, 12],
+          'text-letter-spacing': 0.08,
+          'text-line-height': 1.1,
+          'text-anchor': 'center',
+          'text-allow-overlap': false,
+        },
+        paint: {
+          'text-color': pal.firStroke,
+          'text-halo-color': pal.labelHalo,
+          'text-halo-width': 2.2,
+        },
+      });
+
       map.addLayer({
         id: 'route-line', type: 'line', source: 'route',
         paint: {
