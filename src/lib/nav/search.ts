@@ -3,8 +3,41 @@
 // RouteElements. Tokens are classified as airway / DCT / fix; unknown tokens
 // keep an error message so the UI can flag them.
 
-import { fixByIdent, airwayById, ALL_FIXES } from './db';
+import { fixByIdent, airwayById, ALL_FIXES, AIRWAYS } from './db';
 import type { RouteElement, Fix } from './types';
+
+// ── Levenshtein ≤1 suggestion helper ───────────────────────────────────────
+function editDistLE1(a: string, b: string): boolean {
+  if (a === b) return true;
+  const la = a.length, lb = b.length;
+  if (Math.abs(la - lb) > 1) return false;
+  let i = 0, j = 0, edits = 0;
+  while (i < la && j < lb) {
+    if (a[i] === b[j]) { i++; j++; continue; }
+    if (++edits > 1) return false;
+    if (la === lb) { i++; j++; }
+    else if (la > lb) i++;
+    else j++;
+  }
+  if (i < la || j < lb) edits++;
+  return edits <= 1;
+}
+
+const AIRWAY_IDS = AIRWAYS.map(a => a.id);
+
+/** Best guess replacement for an unknown token, or null. */
+export function suggestToken(raw: string): string | null {
+  const t = raw.trim().toUpperCase();
+  if (!t) return null;
+  const looksLikeAirway = /^[A-Z]{1,3}\d{1,3}[A-Z]?$/.test(t);
+  const pool = looksLikeAirway ? AIRWAY_IDS : ALL_FIXES.map(f => f.ident);
+  for (const cand of pool) {
+    if (cand.length === 0) continue;
+    if (Math.abs(cand.length - t.length) > 1) continue;
+    if (editDistLE1(t, cand)) return cand;
+  }
+  return null;
+}
 
 const AIRWAY_RE = /^[A-Z]{1,3}\d{1,3}[A-Z]?$/;
 
