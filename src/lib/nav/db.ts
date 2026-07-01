@@ -75,27 +75,8 @@ export const WAYPOINTS: Waypoint[] = [
   ...WORLD_WAYPOINTS.filter(w => !CARIB_WPT_IDS.has(w.ident)),
 ];
 
-// ── Airway segments (built from the curated airway point sequences) ─────────
-const AIRWAY_TYPE = (id: string): Airway['type'] => {
-  if (id.startsWith('U') || id.startsWith('J')) return 'JET';
-  if (id.startsWith('V')) return 'VICTOR';
-  if (id.startsWith('Q') || id.startsWith('T') || id.startsWith('Y') || id.startsWith('Z')) return 'RNAV';
-  if (id.startsWith('NAT') || id.startsWith('O')) return 'OCEANIC';
-  return 'LOW';
-};
-
-export const AIRWAYS: Airway[] = RAW_AIRWAYS.map(a => {
-  const segs: AirwaySegment[] = [];
-  for (let i = 0; i < a.points.length - 1; i++) {
-    const f = lookupPoint(a.points[i]);
-    const t = lookupPoint(a.points[i + 1]);
-    if (!f || !t) continue;
-    segs.push({ airwayId: a.id, from: f.ident, to: t.ident, distanceNm: haversineNm(f, t) });
-  }
-  return { id: a.id, type: AIRWAY_TYPE(a.id), segments: segs };
-});
-
-// ── Unified fix table + ident index ─────────────────────────────────────────
+// ── Unified fix table + ident index (built before airways so world airway
+//    endpoints can resolve against the merged database) ─────────────────────
 export const ALL_FIXES: Fix[] = [
   ...AIRPORTS.map<Fix>(a => ({ ident: a.icao, kind: 'airport', lat: a.lat, lon: a.lon, label: a.name, detail: a.icao })),
   ...NAVAIDS.map<Fix>(n => ({ ident: n.ident, kind: 'navaid', lat: n.lat, lon: n.lon, label: n.name, detail: n.type })),
@@ -106,6 +87,38 @@ const FIX_BY_IDENT = new Map<string, Fix>();
 ALL_FIXES.forEach(f => { if (!FIX_BY_IDENT.has(f.ident)) FIX_BY_IDENT.set(f.ident, f); });
 
 export const fixByIdent = (id: string): Fix | undefined => FIX_BY_IDENT.get(id.trim().toUpperCase());
+
+// ── Airway segments (built from the curated airway point sequences) ─────────
+const AIRWAY_TYPE = (id: string): Airway['type'] => {
+  if (id.startsWith('U') || id.startsWith('J')) return 'JET';
+  if (id.startsWith('V')) return 'VICTOR';
+  if (id.startsWith('Q') || id.startsWith('T') || id.startsWith('Y') || id.startsWith('Z')) return 'RNAV';
+  if (id.startsWith('NAT') || id.startsWith('O')) return 'OCEANIC';
+  return 'LOW';
+};
+
+function segDistanceNm(a: { lat: number; lon: number }, b: { lat: number; lon: number }): number {
+  const R = 3440.065, toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat), dLon = toRad(b.lon - a.lon);
+  const s = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(s)));
+}
+
+const buildAirway = (id: string, points: string[]): Airway => {
+  const segs: AirwaySegment[] = [];
+  for (let i = 0; i < points.length - 1; i++) {
+    const f = FIX_BY_IDENT.get(points[i]);
+    const t = FIX_BY_IDENT.get(points[i + 1]);
+    if (!f || !t) continue;
+    segs.push({ airwayId: id, from: f.ident, to: t.ident, distanceNm: segDistanceNm(f, t) });
+  }
+  return { id, type: AIRWAY_TYPE(id), segments: segs };
+};
+
+export const AIRWAYS: Airway[] = [
+  ...RAW_AIRWAYS.map(a => buildAirway(a.id, a.points)),
+  ...WORLD_AIRWAYS.map(a => buildAirway(a.id, a.points)),
+];
 
 const AIRWAY_BY_ID = new Map<string, Airway>();
 AIRWAYS.forEach(a => AIRWAY_BY_ID.set(a.id, a));
