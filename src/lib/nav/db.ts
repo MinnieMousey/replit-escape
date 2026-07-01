@@ -33,7 +33,7 @@ const navaidType = (p: NavPoint): NavaidType => {
   return 'VOR';
 };
 
-export const AIRPORTS: Airport[] = RAW_AERODROMES.map(p => ({
+const CARIB_AIRPORTS: Airport[] = RAW_AERODROMES.map(p => ({
   icao: p.ident,
   name: p.name,
   lat: p.lat,
@@ -41,7 +41,14 @@ export const AIRPORTS: Airport[] = RAW_AERODROMES.map(p => ({
   fir: p.fir,
 }));
 
-export const NAVAIDS: Navaid[] = RAW_NAVAIDS.map(p => ({
+// Dedupe world entries against Caribbean entries by ICAO ident.
+const CARIB_ICAOS = new Set(CARIB_AIRPORTS.map(a => a.icao));
+export const AIRPORTS: Airport[] = [
+  ...CARIB_AIRPORTS,
+  ...WORLD_AIRPORTS.filter(a => !CARIB_ICAOS.has(a.icao)),
+];
+
+const CARIB_NAVAIDS: Navaid[] = RAW_NAVAIDS.map(p => ({
   ident: p.ident,
   name: p.name,
   type: navaidType(p),
@@ -50,13 +57,23 @@ export const NAVAIDS: Navaid[] = RAW_NAVAIDS.map(p => ({
   lon: p.lon,
   note: p.note,
 }));
+const CARIB_NAV_IDS = new Set(CARIB_NAVAIDS.map(n => n.ident));
+export const NAVAIDS: Navaid[] = [
+  ...CARIB_NAVAIDS,
+  ...WORLD_NAVAIDS.filter(n => !CARIB_NAV_IDS.has(n.ident)),
+];
 
-export const WAYPOINTS: Waypoint[] = RAW_FIXES.map(p => ({
+const CARIB_WAYPOINTS: Waypoint[] = RAW_FIXES.map(p => ({
   ident: p.ident,
   lat: p.lat,
   lon: p.lon,
   note: p.note,
 }));
+const CARIB_WPT_IDS = new Set(CARIB_WAYPOINTS.map(w => w.ident));
+export const WAYPOINTS: Waypoint[] = [
+  ...CARIB_WAYPOINTS,
+  ...WORLD_WAYPOINTS.filter(w => !CARIB_WPT_IDS.has(w.ident)),
+];
 
 // ── Airway segments (built from the curated airway point sequences) ─────────
 const AIRWAY_TYPE = (id: string): Airway['type'] => {
