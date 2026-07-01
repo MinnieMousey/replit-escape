@@ -246,10 +246,9 @@ export const RouteTab: React.FC = () => {
     });
   }, [planningDistanceNm, aircraft, eobt]);
 
-  const eetHHMM = eetOverride ?? (calc ? String(calc.eetMin).padStart(4, '0').replace(/^(\d{1,2})(\d{2})$/, (_, h, m) => {
-    const total = calc.eetMin;
-    return `${String(Math.floor(total / 60)).padStart(2, '0')}${String(total % 60).padStart(2, '0')}`;
-  }) : '');
+  const eetHHMM = eetOverride ?? (calc
+    ? `${String(Math.floor(calc.eetMin / 60)).padStart(2, '0')}${String(calc.eetMin % 60).padStart(2, '0')}`
+    : '');
   const fuelKg = fuelOverride ?? (calc ? String(calc.fuelKg) : '');
   const etaVal = etaOverride ?? (calc?.etaHHMM ?? '');
 
