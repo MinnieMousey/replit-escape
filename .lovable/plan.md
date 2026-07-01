@@ -1,37 +1,90 @@
-## Rebuild RouteTab with Leaflet (Phase 1 + Phase 2)
+# RouteTab expansion plan
 
-Replace the current MapLibre-based `RouteTab` with a Leaflet implementation that follows the user's vanilla-JS spec, wrapped in a thin React component so it fits the existing TanStack/React stack. Keep both themes (dark AIS default, SkyVector bright-blue toggle).
+## 1. Global nav data (curated static JSON)
 
-### Files
+New files under `src/lib/nav/data/`:
+- `airports.world.ts` — ~400 major/intl airports across all inhabited regions (ICAO, IATA, name, country, lat, lon). Merged into existing `AIRPORTS` export.
+- `navaids.world.ts` — ~600 VOR/VOR-DME/NDB records (ident, type, freq, lat, lon, country).
+- `waypoints.world.ts` — ~1200 named enroute fixes (ident, lat, lon, region).
+- `airways.world.ts` — ~150 high-altitude airway skeletons across NAM, SAM, EUR, MID, ASIA, OCE keyed by `id` + `segments[{from,to}]`.
 
-- **edit** `src/components/glossary/RouteTab.tsx` — rewrite as a Leaflet host. A single `useEffect` creates the `L.map` on a `div` ref and runs all logic via plain Leaflet/JS APIs (no `react-leaflet`). Cleans up on unmount.
-- **new** `src/components/glossary/leaflet/airports.ts` — exported `AIRPORTS` array of test objects (`name`, `icao`, `iata`, `lat`, `lon`): KJFK New York, EGLL London, RJTT Tokyo, OMDB Dubai, KLAX Los Angeles, plus a handful of Caribbean/SA/NA hubs to satisfy "world airports" (TBPB, TTPP, MKJS, MZBZ, SBGR, SAEZ, CYYZ, KMIA, SKBO). Make sure to add all current airports on the existing map in this new map.
-- **new** `src/components/glossary/leaflet/geo.ts` — pure-JS helpers: `haversineKm(a,b)`, `kmToNm(km)` (× 0.539957), `greatCirclePoints(a,b,segments=64)` (spherical interpolation, no external lib — avoids the CDN-script issue inside a bundled React app).
-- **new** `src/components/glossary/leaflet/theme.ts` — two tile-layer configs and CSS variable sets: `dark` (CartoDB Dark Matter, slate panels, sky-300 accents — matches today's overlay) and `skyvector` (CartoDB Voyager/Positron, white panels, SkyVector cyan `#1f8fff`).
+Existing Caribbean DB stays authoritative; world data is appended so no idents are duplicated (dedupe by `ident`+region on load). `src/lib/nav/db.ts` re-exports the merged lists so `NAVAIDS`, `WAYPOINTS`, `AIRWAYS`, `ALL_FIXES` gain global coverage without callsite changes.
 
-### Phase 1 — Map + sidebar
+## 2. Zoom-scalable rendering
 
-1. Mount a full-tab Leaflet map on a `div ref`, initial view world-centred (`[20, 0]`, zoom 2). Add the active theme's tile layer; swap layers when the theme toggle changes.
-2. For each airport in `AIRPORTS`, add `L.circleMarker([lat,lon], { radius: 5, color: accent, weight: 2, fillOpacity: 0.9 })` with a `.bindTooltip(\`${icao} · ${iata})`and`.bindPopup` showing full name.
-3. Sidebar (left, collapsible, themed): two native `<select>` dropdowns "Departure Airport" and "Arrival Airport", both populated from `AIRPORTS` (option label `ICAO — Name`). Under each, all text inputs necessary for flights according to the SkyVector example: **EOBT** (HHMM), **FUEL** (kg), **EET** (HHMM), **ETA**(HHMM), and a **ROUTE** (string of NBDs, VORs, waypoints, routes, and FIRs that link to make an intended route plan shwon in real time as inputted- eg. BGI DCT A555 FOF) all blank by default, stored in component state — no validation beyond input pattern. Default-empty placeholder values, no preselected airport.
-4. A "Theme" toggle button at the top of the sidebar switches dark ↔ SkyVector.
+In `RouteTab.tsx` add a `zoom` state synced via `map.on('zoomend')`. Replace fixed radii/font sizes with helpers:
 
-### Phase 2 — Great Circle + distance
+```
+sizeFor(zoom, base) = clamp(base * (zoom / 6), base * 0.5, base * 2.2)
+```
 
-1. A `useEffect` watches `[departure, arrival]`. When both selected:
-  - Remove any prior polyline stored in a `routeLayerRef`.
-  - Compute `greatCirclePoints(dep, arr, 96)` and draw `L.polyline(pts, { color: accent, weight: 2.5, dashArray: '6 6', opacity: 0.9 })`.
-  - Compute `distanceNm = kmToNm(haversineKm(dep, arr))`, store in state.
-  - Call `map.fitBounds(polyline.getBounds(), { padding: [40,40] })`.
-2. Sidebar shows `Route Distance: {distanceNm.toFixed(0)} NM` (—  when either side is empty).
-3. Re-draw on theme change so the line colour follows the palette.
+Applied to:
+- `circleMarker` radii (airports/navaids/waypoints).
+- `divIcon` label font-size (px) and margin offsets.
+- Density gate: hide `waypoints` and `airways` layers below zoom 5; hide navaid labels below zoom 4; VOR rose only when a navaid is selected or zoom ≥ 6.
 
-### Out of scope (do not touch this phase)
+Labels rebuild in the existing feature-layer effect, now also keyed on `zoom` bucket (rounded to 1) to avoid rebuilding on every wheel tick.
 
-- FIR/country boundary layers, VOR rose, airway routing (`src/lib/nav/*`), Flight Plan overlay, navaid search. These stay as-is but become unused by the new RouteTab; we leave them in the tree for later phases.
+## 3. Dep/Arr: dropdown + typable
 
-### Technical notes
+Replace the two `<input list=...>` fields with a small combobox pattern:
+- Text input (existing typable behaviour, uppercase, ICAO validation).
+- Chevron button opens a scrollable panel (400 rows max, filtered by current text) grouped by region: Caribbean, North America, South America, Europe, Africa, Asia, Oceania.
+- Click a row → sets ICAO, closes panel. Keeps datalist as a fallback.
 
-- Leaflet + its CSS are already loaded (stylesheet link is in `__root.tsx`). Run `bun add leaflet @types/leaflet` for the JS module — current code uses MapLibre, not Leaflet.
-- No `react-leaflet`. Everything inside one `useEffect(() => { ... return cleanup }, [])`, with a second effect for theme and a third for dep/arr selection. State held in plain `useState`.
-- Tile URLs: dark = `https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png`, skyvector-ish = `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png`. Both free, no key.
+Component lives inline in `RouteTab.tsx` (no new shadcn dep) using existing token colours.
+
+## 4. Aircraft profile + auto-calc
+
+New file `src/lib/nav/aircraft.ts`:
+
+```
+AIRCRAFT = [
+  { id: 'C172', label: 'Cessna 172', tasKt: 110, burnKgHr: 32, reserveMin: 45 },
+  { id: 'B738', label: 'Boeing 737-800', tasKt: 450, burnKgHr: 2500, reserveMin: 45 },
+  { id: 'A320', label: 'Airbus A320',    tasKt: 447, burnKgHr: 2400, reserveMin: 45 },
+  { id: 'A333', label: 'Airbus A330-300', tasKt: 470, burnKgHr: 5600, reserveMin: 45 },
+  { id: 'B77W', label: 'Boeing 777-300ER', tasKt: 490, burnKgHr: 6800, reserveMin: 45 },
+  { id: 'DH8D', label: 'Dash 8 Q400',    tasKt: 360, burnKgHr: 1100, reserveMin: 45 },
+]
+```
+
+New `computeFlightPlan({distanceNm, eobt, aircraft, routeDistanceNm})` returns:
+- `eetMin = round(routeDistanceNm / tasKt * 60)`
+- `fuelKg = round((eetMin + reserveMin) / 60 * burnKgHr)`
+- `etaHHMM = addMinutes(eobtHHMM, eetMin)`
+
+Sidebar adds an **Aircraft** `<select>` above the flight-plan grid. When dep+arr+aircraft are set, computed EET/Fuel show as placeholders in disabled-looking (but overridable) fields. Any manual edit sets a per-field `override` flag so the calculator stops overwriting that field. EOBT change re-derives ETA.
+
+Route distance used for calc: if the manual `route` field is empty or invalid, use great-circle NM; otherwise sum leg distances from parsed route (dep → each waypoint → arr) using `haversineKm`.
+
+## 5. Route parsing, validation & autocorrect
+
+Extend `src/lib/nav/search.ts`:
+- Export `suggestToken(raw)` — Levenshtein ≤ 1 over `ALL_FIXES` idents + airway ids, returns best candidate.
+- Existing `parseRouteString` already flags unknown tokens.
+
+New sidebar block **Route** replaces the plain text input:
+- `<textarea>` (1 row, grows) with monospace font.
+- Beneath: token chips coloured green (ok), amber (auto-fix suggestion available), red (unknown, no suggestion). Hover shows suggestion; click amber chip to accept.
+- Toggle: **Autocorrect on blur** (checkbox, persisted in `localStorage`). When on, blur replaces amber tokens with their suggestion and shows an inline "corrected N tokens" note.
+- Validation summary line: `4 fixes · 1 airway · 0 errors`.
+
+Parsed route also feeds the map: draw a solid polyline through dep → resolved fixes → arr in `tokens.routeStroke` (distinct from the dashed great-circle) inside the existing route effect; falls back to great-circle when route is empty/invalid.
+
+## 6. Files touched
+
+Created:
+- `src/lib/nav/data/airports.world.ts`
+- `src/lib/nav/data/navaids.world.ts`
+- `src/lib/nav/data/waypoints.world.ts`
+- `src/lib/nav/data/airways.world.ts`
+- `src/lib/nav/aircraft.ts`
+- `src/lib/nav/flightCalc.ts` (`computeFlightPlan`, HHMM helpers)
+
+Edited:
+- `src/lib/nav/db.ts` — merge world data into existing exports; dedupe.
+- `src/lib/nav/search.ts` — add `suggestToken`.
+- `src/components/glossary/RouteTab.tsx` — zoom-aware rendering, combobox, aircraft select, auto-calc wiring, route chips + autocorrect toggle, parsed-route polyline.
+
+Out of scope: real AIRAC ingestion, SID/STAR, winds aloft, altitude/FL routing. Auto-calc uses zero wind and cruise-only (no climb/descent fuel), matching the training-tool scope.
