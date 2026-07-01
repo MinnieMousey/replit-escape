@@ -18,6 +18,10 @@ import {
 import type {
   Airport, Navaid, Waypoint, Airway, AirwaySegment, Fix, NavaidType,
 } from './types';
+import { WORLD_AIRPORTS } from './data/airports.world';
+import { WORLD_NAVAIDS } from './data/navaids.world';
+import { WORLD_WAYPOINTS } from './data/waypoints.world';
+import { WORLD_AIRWAYS } from './data/airways.world';
 
 // ── Type normalisation ──────────────────────────────────────────────────────
 // The legacy navdb stores VORs and NDBs under kind 'VOR' / 'NDB'. Promote any
